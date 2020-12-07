@@ -30,6 +30,9 @@ class mcPPO:
 		self.critic_optimizer = keras.optimizers.Adam()
 		self.gamma = 0.99
 		self.sigma = 1.0
+		self.exploration_decay = 1
+		self.batch_size = 128
+		self.epoch = 10
 
 		self.run_id = np.random.randint(0, 1000)
 
@@ -52,16 +55,17 @@ class mcPPO:
 				if done: break
 				state = new_state
 
-			if(episode % 5 == 0): self.update_networks(np.array(memory_buffer))
+			if(episode % 5 == 0): self.update_networks(np.array(memory_buffer), self.epoch, self.batch_size)
 			if(episode % 5 == 0): memory_buffer.clear()
+			if(episode % 5 == 0): self.sigma = self.sigma * self.exploration_decay if self.sigma > 0.05 else 0.05
 
 			ep_reward_mean.append(ep_reward)
 			reward_list.append(ep_reward)
-			if self.verbose > 0: print(f"Episode: {episode:7.0f}, reward: {ep_reward:8.2f}, mean_last_100: {np.mean(ep_reward_mean):8.2f}")
+			if self.verbose > 0: print(f"Episode: {episode:7.0f}, reward: {ep_reward:8.2f}, mean_last_100: {np.mean(ep_reward_mean):8.2f}, sigma: {self.sigma:0.2f}")
 			if self.verbose > 1: np.savetxt(f"data/reward_mcPPO_{self.run_id}.txt", reward_list)
 			
 
-	def update_networks(self, memory_buffer, epoch=10, batch_size=128):
+	def update_networks(self, memory_buffer, epoch, batch_size):
 		# Fix cumulative reward on multiple episodes
 		counter = 0
 		for i in range(len(memory_buffer)):

@@ -23,6 +23,7 @@ class DDPG:
 		self.critic_optimizer = keras.optimizers.Adam()
 		self.gamma = 0.99
 		self.memory_size = 50000
+		self.batch_size = 64
 		self.exploration_rate = 1.0
 		self.exploration_decay = 0.995
 		self.tau = 0.005
@@ -70,8 +71,8 @@ class DDPG:
 			a.assign(b * tau + a * (1 - tau))
 
 	
-	def update_networks(self, replay_buffer, batch_size=64):
-		samples = np.array(random.sample(replay_buffer, min(len(replay_buffer), batch_size)))
+	def update_networks(self, replay_buffer):
+		samples = np.array(random.sample(replay_buffer, min(len(replay_buffer), self.batch_size)))
 		
 		with tf.GradientTape() as tape_a, tf.GradientTape() as tape_c:
 			objective_function_c = self.critic_objective_function(samples) #Compute loss with custom loss function

@@ -23,7 +23,6 @@ class DQN:
 		self.exploration_rate = 1.0
 		self.exploration_decay = 0.995
 		self.tau = 0.005
-		self.target_update_frequency = 20
 
 		self.run_id = np.random.randint(0, 1000)
 
@@ -49,8 +48,6 @@ class DQN:
 				self.update_networks(replay_buffer)	
 				self._update_target(self.actor.variables, self.actor_target.variables, tau=self.tau)
 
-			if(episode % self.target_update_frequency == 0): self.actor_target.set_weights(self.actor.get_weights())
-
 			self.exploration_rate = self.exploration_rate * self.exploration_decay if self.exploration_rate > 0.05 else 0.05	
 			ep_reward_mean.append(ep_reward)
 			reward_list.append(ep_reward)
@@ -72,19 +69,23 @@ class DQN:
 	def update_networks(self, replay_buffer):
 		samples = np.array(random.sample(replay_buffer, min(len(replay_buffer), self.batch_size)))
 		with tf.GradientTape() as tape:
-			objective_function = self.actor_objective_function(samples) #Compute loss with custom loss function
+			objective_function = self.actor_objective_function_double(samples) #Compute loss with custom loss function
 			grads = tape.gradient(objective_function, self.actor.trainable_variables) #Compute gradients actor for network
 			self.optimizer.apply_gradients( zip(grads, self.actor.trainable_variables) ) #Apply gradients to update network weights
 
 
-	def actor_objective_function(self, replay_buffer):
+	def actor_objective_function_double(self, replay_buffer):
 		state = np.vstack(replay_buffer[:, 0])
 		action = replay_buffer[:, 1]
 		reward = np.vstack(replay_buffer[:, 2])
 		new_state = np.vstack(replay_buffer[:, 3])
 		done = np.vstack(replay_buffer[:, 4])
 
-		target_value = reward + (1 - done.astype(int)) * self.gamma * np.amax(self.actor_target(new_state), axis=1, keepdims=True)
+		next_state_action = np.argmax(self.actor(new_state), axis=1)
+		target_mask = self.actor_target(new_state) * tf.one_hot(next_state_action, self.action_space)
+		target_mask = tf.reduce_sum(target_mask, axis=1, keepdims=True)
+		
+		target_value = reward + (1 - done.astype(int)) * self.gamma * target_mask
 		mask = self.actor(state) * tf.one_hot(action, self.action_space)
 		prediction_value = tf.reduce_sum(mask, axis=1, keepdims=True)
 
@@ -100,3 +101,37 @@ class DQN:
 
 		return keras.Model(inputs, outputs)
 		
+
+	##########################
+    #### VANILLA METHODS #####
+    ##########################
+
+
+	def actor_objective_function_fixed_target(self, replay_buffer):
+		state = np.vstack(replay_buffer[:, 0])
+		action = replay_buffer[:, 1]
+		reward = np.vstack(replay_buffer[:, 2])
+		new_state = np.vstack(replay_buffer[:, 3])
+		done = np.vstack(replay_buffer[:, 4])
+
+		target_value = reward + (1 - done.astype(int)) * self.gamma * np.amax(self.actor_target(new_state), axis=1, keepdims=True)
+		mask = self.actor(state) * tf.one_hot(action, self.action_space)
+		prediction_value = tf.reduce_sum(mask, axis=1, keepdims=True)
+
+		mse = tf.math.square(prediction_value - target_value)
+		return tf.math.reduce_mean(mse)
+
+	
+	def actor_objective_function_std(self, replay_buffer):
+		state = np.vstack(replay_buffer[:, 0])
+		action = replay_buffer[:, 1]
+		reward = np.vstack(replay_buffer[:, 2])
+		new_state = np.vstack(replay_buffer[:, 3])
+		done = np.vstack(replay_buffer[:, 4])
+
+		target_value = reward + (1 - done.astype(int)) * self.gamma * np.amax(self.actor(new_state), axis=1, keepdims=True)
+		mask = self.actor(state) * tf.one_hot(action, self.action_space)
+		prediction_value = tf.reduce_sum(mask, axis=1, keepdims=True)
+
+		mse = tf.math.square(prediction_value - target_value)
+		return tf.math.reduce_mean(mse)

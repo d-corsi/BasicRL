@@ -26,6 +26,7 @@ class REINFORCE:
 		self.optimizer = keras.optimizers.Adam()
 		self.gamma = 0.99
 		self.sigma = 1.0
+		self.exploration_decay = 1	
 
 		self.run_id = np.random.randint(0, 1000)
 
@@ -50,10 +51,11 @@ class REINFORCE:
 
 			self.update_networks(np.array(memory_buffer))
 			memory_buffer.clear()
-
+			self.sigma = self.sigma * self.exploration_decay if self.sigma > 0.05 else 0.05
+			
 			ep_reward_mean.append(ep_reward)
 			reward_list.append(ep_reward)
-			if self.verbose > 0: print(f"Episode: {episode:7.0f}, reward: {ep_reward:8.2f}, mean_last_100: {np.mean(ep_reward_mean):8.2f}")
+			if self.verbose > 0: print(f"Episode: {episode:7.0f}, reward: {ep_reward:8.2f}, mean_last_100: {np.mean(ep_reward_mean):8.2f}, sigma: {self.sigma:0.2f}")
 			if self.verbose > 1: np.savetxt(f"data/reward_REINFORCE_{self.run_id}.txt", reward_list)
 			
 
@@ -79,7 +81,6 @@ class REINFORCE:
 		eps = np.finfo(np.float64).eps.item()  # Smallest number such that 1.0 + eps != 1.0 
 		discounted_rewards = np.array(discounted_rewards)
 		discounted_rewards = (discounted_rewards - np.mean(discounted_rewards)) / (np.std(discounted_rewards) + eps)
-		#discounted_rewards = discounted_rewards.tolist()
 
 		return discounted_rewards
 
