@@ -29,6 +29,7 @@ class DDPG:
 		self.tau = 0.005
 
 		self.run_id = np.random.randint(0, 1000)
+		self.render = False
 
 	
 	def loop( self, num_episodes=1000 ):
@@ -41,6 +42,7 @@ class DDPG:
 			ep_reward = 0
 
 			while True:
+				if self.render: self.env.render()
 				action = self.get_action(state)
 				new_state, reward, done, _ = self.env.step(action)
 				ep_reward += reward

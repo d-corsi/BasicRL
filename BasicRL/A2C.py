@@ -32,6 +32,7 @@ class A2C:
 		self.exploration_decay = 1	
 
 		self.run_id = np.random.randint(0, 1000)
+		self.render = False
 
 
 	def loop( self, num_episodes=1000 ):
@@ -44,6 +45,7 @@ class A2C:
 			ep_reward = 0
 
 			while True:
+				if self.render: self.env.render()
 				action = self.get_action(state)
 				new_state, reward, done, _ = self.env.step(action)
 				ep_reward += reward
@@ -58,8 +60,9 @@ class A2C:
 			
 			ep_reward_mean.append(ep_reward)
 			reward_list.append(ep_reward)
-			if self.verbose > 0: print(f"Episode: {episode:7.0f}, reward: {ep_reward:8.2f}, mean_last_100: {np.mean(ep_reward_mean):8.2f}, sigma: {self.sigma:0.2f}")
-			if self.verbose > 1: np.savetxt(f"data/reward_A2C_{self.run_id}.txt", reward_list)
+			if self.verbose > 0 and not self.discrete: print(f"Episode: {episode:7.0f}, reward: {ep_reward:8.2f}, mean_last_100: {np.mean(ep_reward_mean):8.2f}, sigma: {self.sigma:0.2f}")
+			if self.verbose > 0 and self.discrete: print(f"Episode: {episode:7.0f}, reward: {ep_reward:8.2f}, mean_last_100: {np.mean(ep_reward_mean):8.2f}") 
+			if self.verbose > 1: np.savetxt(f"data/reward_PPO_{self.run_id}.txt", reward_list)
 
 
 	def update_networks(self, memory_buffer):
