@@ -1,6 +1,6 @@
 # BasicRL
 
-A basic implementation of the standard reinforcement learning algorithms, specifically design to work with gym-like environments.
+A basic implementation of the standard reinforcement learning algorithms, specifically designed to work with gym-like environments.
 
 ## Available Algorithms
 - [x] REINFORCE
