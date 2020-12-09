@@ -349,8 +349,12 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+# VSCode Config
+.vscode/
+
 # Experimental Data
 Experiments/
 
-# Other Envs
-AquaSmallEnv.py
+# Main Debug
+main.py
+main_plot.py

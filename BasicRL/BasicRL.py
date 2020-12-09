@@ -11,6 +11,8 @@ class BasicRL:
 		valid_algorithms = ["REINFORCE", "ActorCritic", "A2C", "PPO", "mcPPO", "DDPG", "DQN"]
 		assert (algorithm in valid_algorithms), f"Invalid Algorithm! (options: {valid_algorithms})"
 
+		self.change_default_paramters() # Reset all the parameters to default value
+
 
 	def learn(self, ep_step):
 		if self.algorithm == "REINFORCE": self._run_reinforce(ep_step)
@@ -23,7 +25,7 @@ class BasicRL:
 
 
 	def change_default_paramters(self, gamma=None, sigma=None, memory_size=None, exploration_rate=None, exploration_decay=None, 
-									batch_size=None, tau=None, actor_net=None, critic_net=None, epoch=None, render=None):
+									batch_size=None, tau=None, actor_net=None, critic_net=None, epoch=None, render=None, save_model=False):
 			self.gamma = gamma
 			self.sigma = sigma
 			self.memory_size = memory_size
@@ -35,6 +37,7 @@ class BasicRL:
 			self.critic_net = critic_net
 			self.epoch = epoch
 			self.render = render
+			self.save_model = save_model
 
 
 	def _run_reinforce(self, ep_step):
@@ -46,6 +49,8 @@ class BasicRL:
 		if(self.exploration_decay != None): algorithm.exploration_decay = self.exploration_decay
 		algorithm.loop(ep_step)
 
+		if(self.save_model): algorithm.actor.save("data/final_REINFORCE_model.h5")
+
 
 	def _run_ActorCritic(self, ep_step):
 		from BasicRL.ActorCritic import ActorCritic
@@ -56,6 +61,8 @@ class BasicRL:
 		if(self.exploration_decay != None): algorithm.exploration_decay = self.exploration_decay
 		algorithm.loop(ep_step)
 
+		if(self.save_model): algorithm.actor.save("data/final_AC_model.h5")
+
 
 	def _run_A2C(self, ep_step):
 		from BasicRL.A2C import A2C
@@ -65,6 +72,8 @@ class BasicRL:
 		if(self.sigma != None): algorithm.sigma = self.sigma
 		if(self.exploration_decay != None): algorithm.exploration_decay = self.exploration_decay
 		algorithm.loop(ep_step)
+
+		if(self.save_model): algorithm.actor.save("data/final_A2C_model.h5")
 
 
 	def _run_PPO(self, ep_step):
@@ -78,6 +87,8 @@ class BasicRL:
 		if(self.epoch != None): algorithm.epoch = self.epoch
 		algorithm.loop(ep_step)
 
+		if(self.save_model): algorithm.actor.save("data/final_PPO_model.h5")
+
 	
 	def _run_mcPPO(self, ep_step):
 		from BasicRL.mcPPO import mcPPO
@@ -89,6 +100,8 @@ class BasicRL:
 		if(self.batch_size != None): algorithm.batch_size = self.batch_size
 		if(self.epoch != None): algorithm.epoch = self.epoch
 		algorithm.loop(ep_step)
+
+		if(self.save_model): algorithm.actor.save("data/final_mcPPO_model.h5")
 
 
 	def _run_DDPG(self, ep_step):
@@ -104,6 +117,8 @@ class BasicRL:
 		if(self.tau != None): algorithm.tau = self.tau
 		algorithm.loop(ep_step)
 
+		if(self.save_model): algorithm.actor.save("data/final_DDPG_model.h5")
+
 	
 	def _run_DQN(self, ep_step):
 		from BasicRL.DQN import DQN
@@ -117,4 +132,6 @@ class BasicRL:
 		if(self.batch_size != None): algorithm.batch_size = self.batch_size
 		if(self.tau != None): algorithm.tau = self.tau
 		algorithm.loop(ep_step)
+
+		if(self.save_model): algorithm.actor.save("data/final_DQN_model.h5")
 		
