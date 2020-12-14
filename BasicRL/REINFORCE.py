@@ -59,7 +59,7 @@ class REINFORCE:
 			reward_list.append(ep_reward)
 			if self.verbose > 0 and not self.discrete: print(f"Episode: {episode:7.0f}, reward: {ep_reward:8.2f}, mean_last_100: {np.mean(ep_reward_mean):8.2f}, sigma: {self.sigma:0.2f}")
 			if self.verbose > 0 and self.discrete: print(f"Episode: {episode:7.0f}, reward: {ep_reward:8.2f}, mean_last_100: {np.mean(ep_reward_mean):8.2f}") 
-			if self.verbose > 1: np.savetxt(f"data/reward_PPO_{self.run_id}.txt", reward_list)
+			if self.verbose > 1: np.savetxt(f"data/reward_REINFORCE_{self.run_id}.txt", reward_list)
 			
 
 	def update_networks(self, memory_buffer):

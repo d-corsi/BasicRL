@@ -354,8 +354,9 @@ MigrationBackup/
 
 # Experimental Data
 Experiments/
-data/
+data/*.txt
 
 # Main Debug
 main.py
 main_plot.py
+AquaSmall.py
