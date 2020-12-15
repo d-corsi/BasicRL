@@ -57,7 +57,7 @@ class mcPPO:
 				if done: break
 				state = new_state
 
-			if(episode % 5 == 0): self.update_networks(np.array(memory_buffer), self.epoch, self.batch_size)
+			if(episode % 5 == 0): self.update_networks(np.array(memory_buffer, dtype=object), self.epoch, self.batch_size)
 			if(episode % 5 == 0): memory_buffer.clear()
 			if(episode % 5 == 0): self.sigma = self.sigma * self.exploration_decay if self.sigma > 0.05 else 0.05
 
@@ -114,8 +114,8 @@ class mcPPO:
 
 
 	##########################
-    ##### CRITIC METHODS #####
-    ##########################
+	##### CRITIC METHODS #####
+	##########################
 
 
 	def get_critic_model(self, input_shape):
@@ -142,8 +142,8 @@ class mcPPO:
 
 	
 	##########################
-    #### DISCRETE METHODS ####
-    ##########################
+	#### DISCRETE METHODS ####
+	##########################
 
 
 	def get_action_disc(self, state):
@@ -187,9 +187,9 @@ class mcPPO:
 		return keras.Model(inputs, outputs)
 
 
-   	##########################
-    ### CONTINUOUS METHODS ###
-    ##########################	
+	##########################
+	### CONTINUOUS METHODS ###
+	##########################	
 
 
 	def get_action_cont(self, state):

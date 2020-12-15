@@ -74,7 +74,7 @@ class DDPG:
 
 	
 	def update_networks(self, replay_buffer):
-		samples = np.array(random.sample(replay_buffer, min(len(replay_buffer), self.batch_size)))
+		samples = np.array(random.sample(replay_buffer, min(len(replay_buffer), self.batch_size)), dtype=object)
 		
 		with tf.GradientTape() as tape_a, tf.GradientTape() as tape_c:
 			objective_function_c = self.critic_objective_function(samples) #Compute loss with custom loss function
