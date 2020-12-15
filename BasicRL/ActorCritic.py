@@ -54,7 +54,7 @@ class ActorCritic:
 				if done: break
 				state = new_state
 
-			self.update_networks(np.array(memory_buffer))
+			self.update_networks(np.array(memory_buffer, dtype=object))
 			memory_buffer.clear()
 			self.sigma = self.sigma * self.exploration_decay if self.sigma > 0.05 else 0.05
 

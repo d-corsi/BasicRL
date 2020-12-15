@@ -31,7 +31,7 @@ class MyPlotter():
 		data_arrays = [[np.loadtxt(name, delimiter='\n', unpack=True) for name in array_set] for array_set in file_name_arrays]
 		if(early_stop == None): self.array_len = min([min([len(el) for el in array_set]) for array_set in data_arrays])
 		else: self.array_len = early_stop
-		self.data_arrays = np.array([[el[:self.array_len] for el in array_set] for array_set in data_arrays])
+		self.data_arrays = np.array([[el[:self.array_len] for el in array_set] for array_set in data_arrays], dtype=object)
 
 
 	def render(self, labels, colors):
@@ -70,7 +70,7 @@ class MyPlotter():
 				rolling_queue.clear()
 
 		# Fix for different array size
-		self.data_arrays = np.array([np.array(el) for el in self.data_arrays])
+		self.data_arrays = np.array([np.array(el) for el in self.data_arrays], dtype=object)
 		
 		self.mean_array = np.array([[np.mean(array_set[:, i]) for i in range(self.array_len)][starting_pointer:] for array_set in self.data_arrays])
 		self.var_array =  np.array([[np.std(array_set[:, i]) for i in range(self.array_len)][starting_pointer:] for array_set in self.data_arrays])

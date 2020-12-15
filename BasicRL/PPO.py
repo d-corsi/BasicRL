@@ -57,7 +57,7 @@ class PPO:
 				if done: break
 				state = new_state
 
-			if(episode % 5 == 0): self.update_networks(np.array(memory_buffer), self.epoch, self.batch_size)
+			if(episode % 5 == 0): self.update_networks(np.array(memory_buffer, dtype=object), self.epoch, self.batch_size)
 			if(episode % 5 == 0): memory_buffer.clear()
 			if(episode % 5 == 0): self.sigma = self.sigma * self.exploration_decay if self.sigma > 0.05 else 0.05
 			
