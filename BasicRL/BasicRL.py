@@ -1,4 +1,4 @@
-import gym
+import gym, os
 
 class BasicRL:
 	def __init__(self, algorithm, gym_env, verbose=1):
@@ -8,10 +8,11 @@ class BasicRL:
 
 		self.discrete_env = (type(self.gym_env.action_space) == gym.spaces.discrete.Discrete)
 
-		valid_algorithms = ["REINFORCE", "ActorCritic", "A2C", "PPO", "mcPPO", "DDPG", "DQN"]
+		valid_algorithms = ["REINFORCE", "ActorCritic", "A2C", "PPO", "mcPPO", "DDPG", "DQN", "TD3"]
 		assert (algorithm in valid_algorithms), f"Invalid Algorithm! (options: {valid_algorithms})"
 
-		self.change_default_paramters() # Reset all the parameters to default value
+		self.change_default_paramters() #Reset all the parameters to default value
+		if not os.path.exists("data"): os.makedirs("data") #Fix if folder does not exists
 
 
 	def learn(self, ep_step):
@@ -22,6 +23,7 @@ class BasicRL:
 		if self.algorithm == "mcPPO": self._run_mcPPO(ep_step)
 		if self.algorithm == "DDPG": self._run_DDPG(ep_step)
 		if self.algorithm == "DQN": self._run_DQN(ep_step)
+		if self.algorithm == "TD3": self._run_TD3(ep_step)
 
 
 	def change_default_paramters(self, gamma=None, sigma=None, memory_size=None, exploration_rate=None, exploration_decay=None, 
@@ -134,4 +136,20 @@ class BasicRL:
 		algorithm.loop(ep_step)
 
 		if(self.save_model): algorithm.actor.save("data/final_DQN_model.h5")
+
+	
+	def _run_TD3(self, ep_step):
+		from BasicRL.TD3 import TD3
+		assert (not self.discrete_env), "TD3 requires continuous environments!"
+		algorithm = TD3( self.gym_env, self.verbose )
+		if(self.render != None): algorithm.render = self.render
+		if(self.gamma != None): algorithm.gamma = self.gamma
+		if(self.memory_size != None): algorithm.memory_size = self.memory_size
+		if(self.exploration_rate != None): algorithm.exploration_rate = self.exploration_rate
+		if(self.exploration_decay != None): algorithm.exploration_decay = self.exploration_decay
+		if(self.batch_size != None): algorithm.batch_size = self.batch_size
+		if(self.tau != None): algorithm.tau = self.tau
+		algorithm.loop(ep_step)
+
+		if(self.save_model): algorithm.actor.save("data/final_DDPG_model.h5")
 		

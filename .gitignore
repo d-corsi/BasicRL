@@ -365,3 +365,6 @@ data/*.txt
 # Main Debug
 main.py
 main_plot.py
+aqua_env.py
+franka_env.py
+simplified_cart_pole.py
