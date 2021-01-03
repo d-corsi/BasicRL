@@ -66,7 +66,7 @@ class TD3:
 			ep_reward_mean.append(ep_reward)
 			reward_list.append(ep_reward)
 			if self.verbose > 0: print(f"Episode: {episode:7.0f}, reward: {ep_reward:8.2f}, mean_last_100: {np.mean(ep_reward_mean):8.2f}, exploration: {self.exploration_rate:0.2f}")
-			if self.verbose > 1: np.savetxt(f"data/reward_DDPG_{self.run_id}.txt", reward_list)
+			if self.verbose > 1: np.savetxt(f"data/reward_TD3_{self.run_id}.txt", reward_list)
 
 
 	def get_action(self, state):
@@ -85,8 +85,8 @@ class TD3:
 		samples = np.array(random.sample(replay_buffer, min(len(replay_buffer), self.batch_size)), dtype=object)
 		
 		with tf.GradientTape() as tape_c1, tf.GradientTape() as tape_c2:
-			objective_function_c1 = self.critic_objective_function(self.critic_1, self.critic_target_1, samples)
-			objective_function_c2 = self.critic_objective_function(self.critic_2, self.critic_target_2, samples)
+			objective_function_c1 = self.critic_objective_function(self.critic_1, samples)
+			objective_function_c2 = self.critic_objective_function(self.critic_2, samples)
 
 			grads_c1 = tape_c1.gradient(objective_function_c1, self.critic_1.trainable_variables) 
 			grads_c2 = tape_c2.gradient(objective_function_c2, self.critic_2.trainable_variables)
@@ -141,15 +141,12 @@ class TD3:
 		action = np.vstack(replay_buffer[:, 1])
 
 		action = self.actor(state)	
-
-		target_1 = self.critic_1([state, action])
-		target_2 = self.critic_2([state, action])
-		target = tf.math.minimum(target_1, target_2)
+		target = self.critic_1([state, action])
 
 		return -tf.math.reduce_mean(target)
 
 
-	def critic_objective_function(self, critic_i, critic_target_i, replay_buffer, gamma=0.99):
+	def critic_objective_function(self, critic_i, replay_buffer, gamma=0.99):
 		# Extract values from buffer
 		state = np.vstack(replay_buffer[:, 0])
 		action = np.vstack(replay_buffer[:, 1])
@@ -163,7 +160,9 @@ class TD3:
 		# Trovandomi però con un action sapce continuo non posso testare le diverse azioni
 		# Prendo quindi come azione migliore quella che la policy avrebbe scelto in quello stato ,e suppongo sarebbe la scelta migliore
 		best_action = self.actor(new_state)
-		max_q = critic_target_i([new_state, best_action])
+		max_q_1 = self.critic_target_1([new_state, best_action])
+		max_q_2 = self.critic_target_2([new_state, best_action])
+		max_q = tf.math.minimum(max_q_1, max_q_2)
 
 		target = reward + gamma * max_q * (1 - done.astype(int))
 
