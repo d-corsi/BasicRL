@@ -355,13 +355,10 @@ MigrationBackup/
 # Experimental Data
 Experiments/
 data/*.txt
-!data/reward_DQN_example_1.txt
-!data/reward_DQN_example_2.txt
-!data/reward_DQN_example_3.txt
-!data/reward_PPO_example_1.txt
-!data/reward_PPO_example_2.txt
-!data/reward_PPO_example_3.txt
 
 # Main Debug
 main.py
 main_plot.py
+aqua_env.py
+franka_env.py
+simplified_cart_pole.py
