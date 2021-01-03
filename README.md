@@ -11,7 +11,7 @@ A basic implementation of the standard reinforcement learning algorithms, specif
 - [x] Double Deep Q-Learning (DDQN)
 - [x] Deep Deterministic Policy Gradient (DDPG)
 - [ ] Soft Actor-Critic (SAC) 
-- [ ] Twin Delayed DDPG (TD3) 
+- [x] Twin Delayed DDPG (TD3) 
 
 ## Run the Algorithms
 Work in progress ...
