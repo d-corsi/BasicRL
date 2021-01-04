@@ -27,12 +27,14 @@ class TD3:
 		self.actor_optimizer = keras.optimizers.Adam()
 		self.critic_optimizer_1 = keras.optimizers.Adam()
 		self.critic_optimizer_2 = keras.optimizers.Adam()
+		
 		self.gamma = 0.99
 		self.memory_size = 50000
 		self.batch_size = 64
 		self.exploration_rate = 1.0
 		self.exploration_decay = 0.995
 		self.tau = 0.005
+		self.noise_clip = 0.2
 
 		self.run_id = np.random.randint(0, 1000)
 		self.render = False
@@ -47,6 +49,7 @@ class TD3:
 			state = self.env.reset()
 			ep_reward = 0
 
+			index = 0
 			while True:
 				if self.render: self.env.render()
 				action = self.get_action(state)
@@ -58,10 +61,12 @@ class TD3:
 				state = new_state
 
 				self.update_critic_networks(replay_buffer)
+				if (index % 5) == 0: self.update_actor_network(replay_buffer) #TD3 trick 2
 				self._update_target(self.critic_1.variables, self.critic_target_1.variables, tau=self.tau)
 				self._update_target(self.critic_2.variables, self.critic_target_2.variables, tau=self.tau)
 
-			self.update_actor_network(replay_buffer)
+				index += 1
+
 			self.exploration_rate = self.exploration_rate * self.exploration_decay if self.exploration_rate > 0.05 else 0.05	
 			ep_reward_mean.append(ep_reward)
 			reward_list.append(ep_reward)
@@ -159,10 +164,13 @@ class TD3:
 		# L'idea sarebbe quella di utilizzare la Bellman, in particolare vorrei avere il q value dell'azione col valore più alto a pArteire dallo stato s'
 		# Trovandomi però con un action sapce continuo non posso testare le diverse azioni
 		# Prendo quindi come azione migliore quella che la policy avrebbe scelto in quello stato ,e suppongo sarebbe la scelta migliore
-		best_action = self.actor(new_state)
+		best_action = self.actor(new_state) 
+		noise = np.clip(np.random.normal(loc=0, scale=self.exploration_rate), -self.noise_clip, self.noise_clip)
+		best_action = np.clip(best_action + noise, self.env.action_space.low, self.env.action_space.high) #TD3 trick 3
+
 		max_q_1 = self.critic_target_1([new_state, best_action])
 		max_q_2 = self.critic_target_2([new_state, best_action])
-		max_q = tf.math.minimum(max_q_1, max_q_2)
+		max_q = tf.math.minimum(max_q_1, max_q_2) #TD3 trick 1
 
 		target = reward + gamma * max_q * (1 - done.astype(int))
 

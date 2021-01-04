@@ -27,7 +27,7 @@ class BasicRL:
 
 
 	def change_default_paramters(self, gamma=None, sigma=None, memory_size=None, exploration_rate=None, exploration_decay=None, 
-									batch_size=None, tau=None, actor_net=None, critic_net=None, epoch=None, render=None, save_model=False):
+									batch_size=None, tau=None, noise_clip=None, actor_net=None, critic_net=None, epoch=None, render=None, save_model=False):
 			self.gamma = gamma
 			self.sigma = sigma
 			self.memory_size = memory_size
@@ -35,6 +35,7 @@ class BasicRL:
 			self.exploration_decay = exploration_decay
 			self.batch_size = batch_size
 			self.tau = tau
+			self.noise_clip = noise_clip
 			self.actor_net = actor_net
 			self.critic_net = critic_net
 			self.epoch = epoch
@@ -149,6 +150,7 @@ class BasicRL:
 		if(self.exploration_decay != None): algorithm.exploration_decay = self.exploration_decay
 		if(self.batch_size != None): algorithm.batch_size = self.batch_size
 		if(self.tau != None): algorithm.tau = self.tau
+		if(self.noise_clip != None): algorithm.noise_clip = self.noise_clip
 		algorithm.loop(ep_step)
 
 		if(self.save_model): algorithm.actor.save("data/final_DDPG_model.h5")
