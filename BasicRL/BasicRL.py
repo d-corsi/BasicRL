@@ -1,18 +1,44 @@
 import gym, os
 
 class BasicRL:
-	def __init__(self, algorithm, gym_env, verbose=1):
+
+	valid_algorithms = ["REINFORCE", "ActorCritic", "A2C", "PPO", "mcPPO", "DDPG", "DQN", "TD3"]
+
+	def __init__(self, algorithm, gym_env, verbose=1, **kwargs ):
+
+		# Class Attributes
 		self.algorithm = algorithm
 		self.gym_env = gym_env
 		self.verbose = verbose
+		
+		# Class Attributes (optional)
+		self.gamma = None
+		self.sigma = None
+		self.memory_size = None
+		self.exploration_rate = None
+		self.exploration_decay = None
+		self.batch_size = None
+		self.tau = None
+		self.noise_clip = None
+		self.actor_net = None
+		self.critic_net = None
+		self.epoch = None
+		self.render = None
+		self.save_model = False
 
+		# Parse kwargs attribute
+		for key, value in kwargs.items():
+			if hasattr(self, key) and value is not None: 
+				setattr(self, key, value)
+
+		# Private Variables
 		self.discrete_env = (type(self.gym_env.action_space) == gym.spaces.discrete.Discrete)
 
-		valid_algorithms = ["REINFORCE", "ActorCritic", "A2C", "PPO", "mcPPO", "DDPG", "DQN", "TD3"]
-		assert (algorithm in valid_algorithms), f"Invalid Algorithm! (options: {valid_algorithms})"
+		# Check valid algorithm
+		assert (algorithm in self.valid_algorithms), f"Invalid Algorithm! (options: {self.valid_algorithms})"
 
-		self.change_default_paramters() #Reset all the parameters to default value
-		if not os.path.exists("data"): os.makedirs("data") #Fix if folder does not exists
+		# Fix if folder does not exists
+		if not os.path.exists("data"): os.makedirs("data") 
 
 
 	def learn(self, ep_step):
@@ -26,25 +52,8 @@ class BasicRL:
 		if self.algorithm == "TD3": self._run_TD3(ep_step)
 
 
-	def change_default_paramters(self, gamma=None, sigma=None, memory_size=None, exploration_rate=None, exploration_decay=None, 
-									batch_size=None, tau=None, noise_clip=None, actor_net=None, critic_net=None, epoch=None, render=None, save_model=False):
-			self.gamma = gamma
-			self.sigma = sigma
-			self.memory_size = memory_size
-			self.exploration_rate = exploration_rate
-			self.exploration_decay = exploration_decay
-			self.batch_size = batch_size
-			self.tau = tau
-			self.noise_clip = noise_clip
-			self.actor_net = actor_net
-			self.critic_net = critic_net
-			self.epoch = epoch
-			self.render = render
-			self.save_model = save_model
-
-
 	def _run_reinforce(self, ep_step):
-		from BasicRL.REINFORCE import REINFORCE
+		from BasicRL.algos.REINFORCE import REINFORCE
 		algorithm = REINFORCE( self.gym_env, self.discrete_env, self.verbose )
 		if(self.render != None): algorithm.render = self.render
 		if(self.gamma != None): algorithm.gamma = self.gamma
@@ -56,7 +65,7 @@ class BasicRL:
 
 
 	def _run_ActorCritic(self, ep_step):
-		from BasicRL.ActorCritic import ActorCritic
+		from BasicRL.algos.ActorCritic import ActorCritic
 		algorithm = ActorCritic( self.gym_env, self.discrete_env, self.verbose )
 		if(self.render != None): algorithm.render = self.render
 		if(self.gamma != None): algorithm.gamma = self.gamma
@@ -68,7 +77,7 @@ class BasicRL:
 
 
 	def _run_A2C(self, ep_step):
-		from BasicRL.A2C import A2C
+		from BasicRL.algos.A2C import A2C
 		algorithm = A2C( self.gym_env, self.discrete_env, self.verbose )
 		if(self.render != None): algorithm.render = self.render
 		if(self.gamma != None): algorithm.gamma = self.gamma
@@ -80,7 +89,7 @@ class BasicRL:
 
 
 	def _run_PPO(self, ep_step):
-		from BasicRL.PPO import PPO
+		from BasicRL.algos.PPO import PPO
 		algorithm = PPO( self.gym_env, self.discrete_env, self.verbose )
 		if(self.render != None): algorithm.render = self.render
 		if(self.gamma != None): algorithm.gamma = self.gamma
@@ -94,7 +103,7 @@ class BasicRL:
 
 	
 	def _run_mcPPO(self, ep_step):
-		from BasicRL.mcPPO import mcPPO
+		from BasicRL.algos.mcPPO import mcPPO
 		algorithm = mcPPO( self.gym_env, self.discrete_env, self.verbose )
 		if(self.render != None): algorithm.render = self.render
 		if(self.gamma != None): algorithm.gamma = self.gamma
@@ -108,7 +117,7 @@ class BasicRL:
 
 
 	def _run_DDPG(self, ep_step):
-		from BasicRL.DDPG import DDPG
+		from BasicRL.algos.DDPG import DDPG
 		assert (not self.discrete_env), "DDPG requires continuous environments!"
 		algorithm = DDPG( self.gym_env, self.verbose )
 		if(self.render != None): algorithm.render = self.render
@@ -124,7 +133,7 @@ class BasicRL:
 
 	
 	def _run_DQN(self, ep_step):
-		from BasicRL.DQN import DQN
+		from BasicRL.algos.DQN import DQN
 		assert (self.discrete_env), "DQN requires discrete environments!"
 		algorithm = DQN( self.gym_env, self.verbose )
 		if(self.render != None): algorithm.render = self.render
@@ -140,7 +149,7 @@ class BasicRL:
 
 	
 	def _run_TD3(self, ep_step):
-		from BasicRL.TD3 import TD3
+		from BasicRL.algos.TD3 import TD3
 		assert (not self.discrete_env), "TD3 requires continuous environments!"
 		algorithm = TD3( self.gym_env, self.verbose )
 		if(self.render != None): algorithm.render = self.render
