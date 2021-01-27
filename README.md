@@ -1,6 +1,6 @@
 # BasicRL
 
-A basic implementation of the standard reinforcement learning algorithms, specifically designed to work with gym-like environments.
+A basic implementation of the standard reinforcement learning algorithms in TensorFlow 2, specifically designed to work with gym-like environments.
 
 ## Available Algorithms
 - [x] REINFORCE
@@ -30,4 +30,4 @@ Work in progress ...
 ## License
 
 - **MIT license**
-- Copyright 2019 © **Davide Corsi**.
+- Copyright 2021 © **Davide Corsi**.

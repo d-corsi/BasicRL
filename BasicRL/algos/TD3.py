@@ -159,11 +159,6 @@ class TD3:
 		new_state = np.vstack(replay_buffer[:, 3])
 		done = np.vstack(replay_buffer[:, 4])
 
-		# Compute the objective function
-		# => r + gamma * max(Q(s', a'))
-		# L'idea sarebbe quella di utilizzare la Bellman, in particolare vorrei avere il q value dell'azione col valore più alto a pArteire dallo stato s'
-		# Trovandomi però con un action sapce continuo non posso testare le diverse azioni
-		# Prendo quindi come azione migliore quella che la policy avrebbe scelto in quello stato ,e suppongo sarebbe la scelta migliore
 		best_action = self.actor(new_state) 
 		noise = np.clip(np.random.normal(loc=0, scale=self.exploration_rate), -self.noise_clip, self.noise_clip)
 		best_action = np.clip(best_action + noise, self.env.action_space.low, self.env.action_space.high) #TD3 trick 3
