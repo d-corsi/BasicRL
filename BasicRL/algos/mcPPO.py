@@ -73,7 +73,7 @@ class mcPPO:
 		counter = 0
 		for i in range(len(memory_buffer)):
 			if(memory_buffer[:, 5][i]): 
-				memory_buffer[:, 3][counter:i] = self.discount_reward(memory_buffer[:, 3][counter:i])
+				memory_buffer[:, 3][counter:i+1] = self.discount_reward(memory_buffer[:, 3][counter:i+1])
 				counter = i
 
 

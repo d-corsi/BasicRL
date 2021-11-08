@@ -1,6 +1,8 @@
-# BasicRL
+### Disclaimer:
+This is a **work in progress repo**, there may be bugs in the code and numerous typos in the README file.
 
-A basic implementation of the standard reinforcement learning algorithms in TensorFlow 2, specifically designed to work with gym-like environments.
+# BasicRL
+A basic implementation of the standard reinforcement learning algorithms in TensorFlow 2, designed to work with gym-like environments.
 
 ## Available Algorithms
 - [x] REINFORCE
