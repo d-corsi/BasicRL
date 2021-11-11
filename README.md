@@ -17,11 +17,11 @@ A basic implementation of the standard reinforcement learning algorithms in Tens
 - [x] Twin Delayed DDPG (TD3) 
 
 ## Run the Algorithms
-To use our algorithms use the class **BasicRL** from the python file *basic_rl/main.py*. The object BasicRL require a key of the algorithm to run and the gym environment as input.
+To use our algorithms use the class **BasicRL** from the python file *basic_rl/basic_rl.py*. The object BasicRL require a key of the algorithm to run and the gym environment as input.
 ```
 # VALID ALGORITHM KEYS: ["REINFORCE", "ActorCritic", "A2C", "PPO", "mcPPO", "DDPG", "DQN", "TD3"]
 
-from basic_rl.main import BasicRL
+from basic_rl.basic_rl import BasicRL
 
 env = gym.make("CartPole-v1")
 basic_rl = BasicRL( "PPO", env )

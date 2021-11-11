@@ -7,6 +7,54 @@ import abc, random
 
 class BasicReinforcement( metaclass=abc.ABCMeta ):
 
+	"""
+	Abstract class that implements the basic function shared by all the reinforcment learning algorithm implemented 
+	in BasicRL. 
+	This class provides also the interface for methods that are different for each implementations andthe hyperparameters 
+	of the training for the different algorithms and manteins the default value	for them. 
+	This class contains 6 flag that provides little changes based on the selected algorithm for the training:
+
+		- train_critic (used for all the actor/critic approaches, like PPO, A2C or DDPG)
+		- temporal_difference_method 
+		- use_batch (for the algorithms that make use of batches to train, like PPO )
+		- dqn_update (specific when update DQN, the actor must be updated like a critic)
+		- ddpg_update (specific when update DDPG, actor and critic have different functions)
+		- td3_update (activate the 3 trick of TD3, delayed actor update, target critic, objective with double critic )
+
+	NB: This class is abstract, the default hyperparamters are update by default in the child class
+
+	Methods
+	-------
+		def learn( )
+			method that start the training loop with the given parameters
+		update_networks( memory_buffer, only_actor, only_critic )
+			method that perform the actual training, compute the objective function, the gradient and perform 
+			the backpropagation step
+		discount_reward( rewards ):
+			method that discount the given reward list using the class parameter self.gamma
+		temporal_difference( reward, new_state, done )
+			method that compute the temporal difference of 1 step (TD1) from the given 
+			parameters list
+		update_target_network( fixed_weights, target_weights )
+			method that update the weights of the target_weights towards the fixed_weights
+		critic_objective_function( memory_buffer )
+			method that compute the objective function for the critic, returns the objective function to optimize
+		get_critic_model( )
+			method that returns the neural network to train for the critic
+		def plot_results( episode, ep_reward, ep_reward_mean, reward_list )
+			[ABSTRACT] method that select the action given the state, calling the actor network
+			or the expolaration policy
+		get_action( state )
+			[ABSTRACT] method that select the action given the state, calling the actor network
+			or the expolaration policy
+		actor_objective_function( memory_buffer )
+			[ABSTRACT] method that compute the objective function for the actor, returns the objective function to optimize
+		get_actor_model( ) 
+			[ABSTRACT] method that returns the neural network to train for the actor
+	
+	
+	"""
+
 	train_critic = False
 	temporal_difference_method = False
 	use_batch = False
@@ -15,6 +63,15 @@ class BasicReinforcement( metaclass=abc.ABCMeta ):
 	td3_update = False
 
 	def __init__( self, env ):
+
+		"""
+		Constructor of the class
+
+		Parameters
+		----------
+			env : Gym
+				the environment to train, in the Open AI Gym style 
+		"""
 
 		# Configurations
 		self.name = "BasicReinforcement"
@@ -89,8 +146,8 @@ class BasicReinforcement( metaclass=abc.ABCMeta ):
 				if self.td3_update:
 					self.update_networks(memory_buffer, only_critic=True)
 					if (step_counter % self.actor_update_delay) == 0: self.update_networks(memory_buffer, only_actor=True) #TD3 trick 2
-					self.update_target_network(self.critic_network.variables, self.critic_target.variables, tau=self.tau)
-					self.update_target_network(self.critic_network_2.variables, self.critic_target_2.variables, tau=self.tau)
+					self.update_target_network(self.critic_network.variables, self.critic_target.variables)
+					self.update_target_network(self.critic_network_2.variables, self.critic_target_2.variables)
 
 
 			if not (self.dqn_update or self.ddpg_update or self.td3_update) and (episode % self.update_frequency == 0):
@@ -103,32 +160,6 @@ class BasicReinforcement( metaclass=abc.ABCMeta ):
 			ep_reward_mean.append(ep_reward)
 			reward_list.append(ep_reward)
 			self.plot_results( episode, ep_reward, ep_reward_mean, reward_list )
-
-
-	def discount_reward(self, rewards):
-		sum_reward = 0
-		discounted_rewards = []
-
-		for r in rewards[::-1]:
-			sum_reward = r + self.gamma * sum_reward
-			discounted_rewards.append(sum_reward)
-		discounted_rewards.reverse() 
-
-		# Normalize
-		eps = np.finfo(np.float64).eps.item()  # Smallest number such that 1.0 + eps != 1.0 
-		discounted_rewards = np.array(discounted_rewards)
-		discounted_rewards = (discounted_rewards - np.mean(discounted_rewards)) / (np.std(discounted_rewards) + eps)
-
-		return discounted_rewards
-
-
-	def temporal_difference(self, reward, new_state, done): 
-		return reward + (1 - done.astype(int)) * self.gamma * self.critic_network(new_state) # 1-Step TD, for the n-Step TD we must save more sequence in the buffer
-
-
-	def update_target_network(self, weights, target_weights, tau):
-		for (a, b) in zip(target_weights, weights):
-			a.assign(b * tau + a * (1 - tau))
 
 
 	def update_networks(self, memory_buffer, only_actor=False, only_critic=False):
@@ -176,38 +207,225 @@ class BasicReinforcement( metaclass=abc.ABCMeta ):
 			if self.use_batch: random.shuffle(batch_list)
 
 
+	def discount_reward(self, rewards):
+
+		"""
+		method that discount the given reward list using the class parameter self.gamma
+
+		Parameters
+		----------
+			rewards : list 
+				complete list of the reward to discount
+
+		Returns:
+		--------
+			discounted_rewards : list
+				complete list of the discounted reward
+		"""
+
+		# initialize the reward list and the counter for the discoutned future reward
+		sum_reward = 0
+		discounted_rewards = []
+
+		# iterate over the rewards in the reverse order
+		for r in rewards[::-1]:
+
+			# apply the discount in the reverse order and append to the list
+			sum_reward = r + self.gamma * sum_reward
+			discounted_rewards.append(sum_reward)
+
+		# reverse the order again to restore the correct order
+		discounted_rewards.reverse() 
+
+		# Normalize the value, eps is a small number to 
+		# eventually avoid division by 0
+		eps = np.finfo(np.float64).eps.item()
+		discounted_rewards = np.array(discounted_rewards)
+		discounted_rewards = (discounted_rewards - np.mean(discounted_rewards)) / (np.std(discounted_rewards) + eps)
+
+		#
+		return discounted_rewards
+
+	
+	def temporal_difference(self, reward, new_state, done): 
+		
+		"""
+		method that compute the temporal difference of 1 step (TD1) from the given parameters list
+
+		Parameters
+		----------
+			reward : list 
+				instant reward
+			new_state : NumpyArray
+				the next state 
+			done: list
+				indicate if new_state is terminal with a list of boolean
+
+		Returns:
+		--------
+			td_1: 1 step temporal difference given the paramters
+		"""
+
+		# Compute TD1 using the standard formula
+		# refer to "spinning Up" from OpenAI for theoreticl details
+		td_1 = reward + (1 - done.astype(int)) * self.gamma * self.critic_network(new_state) 
+
+		#
+		return td_1
+
+
+	def update_target_network(self, fixed_weights, target_weights ):
+		"""
+		method that update the weights of the target_weights towards the fixed_weights
+
+		Parameters
+		----------
+			fixed_weights : NumpyArray 
+				the weight of the basic network, move the other netowrk weights toward these weights
+				with a step of the paramter self.tau (default 0.005 at each step)
+			target_weights : NumpyArray
+				the netowrk that change its values toward the other network
+		"""
+
+		# Iterate over all the weights and update the weights of target_weights in direction of weights
+		# the update is of tau towards the "fixed_weights" and (1-tau) remains the same of "target_weights".
+		for (a, b) in zip(target_weights, fixed_weights):
+			a.assign(b * self.tau + a * (1 - self.tau))
+
+
 	def critic_objective_function(self, memory_buffer):
+
+		"""
+		method that compute the objective function for the critic, returns the objective function to optimize
+
+		Parameters
+		----------
+			memory_buffer : NumpyArray 
+				buffer with the data from each episode, in the following form:
+				[state, action, action_prob, reward, new_state, done]
+
+		Returns:
+		--------
+			objective_function : tf.EagerTensor
+				tensorflow tensor that represent the objective function to maximize
+		"""
+
 		# Extract values from buffer
 		state = np.vstack(memory_buffer[:, 0])
 		reward = np.vstack(memory_buffer[:, 3])
 		new_state = np.vstack(memory_buffer[:, 4])
 		done = np.vstack(memory_buffer[:, 5])
 
+		# Compute the objective function for the critic using mse
+		# both temporal difference and montecarlo metod for 
+		# the objective
 		predicted_value = self.critic_network(state)
 		if not self.temporal_difference_method: target = reward 
 		else: target = self.temporal_difference(reward, new_state, done) 
 		mse = tf.math.square(predicted_value - target)
 
+		#
 		return tf.math.reduce_mean(mse)
 
 
 	def get_critic_model( self ):
+
+		"""
+		method that returns the neural network to train for the critic
+
+		Returns:
+		--------
+			critic : keras.Model
+				the default keras model for the critic
+		"""
+
+		# Generate the standard network using keras/tf
 		inputs = keras.layers.Input(shape=self.input_shape)
 		hidden_0 = keras.layers.Dense(64, activation='relu')(inputs)
 		hidden_1 = keras.layers.Dense(64, activation='relu')(hidden_0)
 		outputs = keras.layers.Dense(1, activation='linear')(hidden_1)
 
+		#
 		return keras.Model(inputs, outputs)
 
 
 	@abc.abstractmethod
-	def plot_results( self, episode, ep_reward, ep_reward_mean, reward_list ): return
+	def plot_results( self, episode, ep_reward, ep_reward_mean, reward_list ): 
+		
+		"""
+		abstract method that select the action given the state, calling the actor network
+		or the expolaration policy
+
+		Parameters
+		----------
+			episode : int
+				current running episode
+			ep_reward : int
+				reward of the current episode
+			ep_reward_mean : queue
+				reward list of the last 100 episodes, useful to compute the mean value of the last 100 episodes
+			reward_list : list
+				complete list of the rewards
+		"""
+
+		#
+		return
+
 
 	@abc.abstractmethod
-	def get_action( self, state ): return
+	def get_action( self, state ): 
+
+		"""
+		abstract method that select the action given the state, calling the actor network
+		or the expolaration policy
+
+		Parameters
+		----------
+			state : NumpyAarray 
+				that represent the current state to use to compute the next action
+
+		Returns:
+		--------
+			action : int/float
+				the action to perform, an integer index for discrete action space
+				or a float value (or list of float) for continuous action space
+		"""
+		
+		#
+		return
+
 
 	@abc.abstractmethod
-	def actor_objective_function( self, memory_buffer ): return
+	def actor_objective_function( self, memory_buffer ): 
+		"""
+		abstract method that compute the objective function for the actor, returns the objective function to optimize
+
+		Parameters
+		----------
+			memory_buffer : NumpyArray 
+				buffer with the data from each episode, in the following form:
+				[state, action, action_prob, reward, new_state, done]
+
+		Returns:
+		--------
+			objective_function : tf.EagerTensor
+				tensorflow tensor that represent the objective function to maximize
+		"""
+		
+		#
+		return
+
 
 	@abc.abstractmethod
-	def get_actor_model( self ): return
+	def get_actor_model( self ): 
+				
+		"""
+		abstract method that returns the neural network to train for the actor
+
+		Returns:
+		--------
+			critic : keras.Model
+				the default keras model for the critic
+		"""
+		#
+		return
