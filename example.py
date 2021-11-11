@@ -4,8 +4,6 @@ import gym
 if __name__ == "__main__":
 	print("Hello Basic RL example!")
 	
-	# Run PPO Algorithm
-	learner = BasicRL( )
-	
-	
-	
+	env = gym.make("CartPole-v1")
+	basic_rl = BasicRL( "PPO", env, verbose=1 )
+	basic_rl.train()

@@ -1,4 +1,4 @@
-import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 from tensorflow import keras
 from collections import deque
 import tensorflow as tf
