@@ -3,7 +3,7 @@ import numpy as np
 from collections import deque
 
 class MyPlotter():
-	def __init__(self, x_label="X Label", y_label="Y Label", title="No Title"):
+	def __init__(self, x_label="X Label", y_label="Y Label", title="No Title", cap=None):
 		self.fig, self.ax = plt.subplots(1)
 		self.ax.spines["top"].set_visible(False)    
 		self.ax.spines["bottom"].set_visible(False)    
@@ -17,7 +17,10 @@ class MyPlotter():
 		plt.xlabel(x_label, fontsize=12)
 		plt.ylabel(y_label, fontsize=12)
 		plt.title(title, fontsize=16)
-		
+
+		fig = plt.gcf()
+		fig.set_size_inches(9, 5)
+
 		self.data_arrays = []
 		self.array_len = -1
 
@@ -25,6 +28,8 @@ class MyPlotter():
 		self.var_array =  []
 		self.max_array = []
 		self.min_array = []
+
+		self.cap = cap
 
 	
 	def load_array(self, file_name_arrays, early_stop=None):
@@ -57,6 +62,18 @@ class MyPlotter():
 		self.ax.legend(loc='lower right', bbox_to_anchor=(1, 0), fontsize=14)
 		plt.show()
 
+	
+	def render_std_log(self, labels, colors):
+		err_msg = "load some data before the render!"
+		assert self.array_len > 0, err_msg
+
+		for mean_values, var_values, label, color in zip(self.mean_array, self.var_array, labels, colors):
+			self.ax.plot(self.x_axes, mean_values, label=label, color=color, linestyle='-', linewidth=1.2 )
+			self.ax.fill_between(self.x_axes, mean_values+np.log(var_values), mean_values-np.log(var_values), facecolor=color, alpha=0.3)
+
+		self.ax.legend(loc='lower right', bbox_to_anchor=(1, 0), fontsize=14)
+		plt.show()
+
 
 	def process_data(self, rolling_window=1, starting_pointer=0, early_stop=None):		
 		rolling_queue = deque(maxlen=rolling_window)
@@ -67,6 +84,7 @@ class MyPlotter():
 				for i in range(self.array_len):
 					rolling_queue.append(array[i])
 					array[i] = np.mean(rolling_queue)
+					if self.cap != None: array[i] = min(array[i], self.cap)
 				rolling_queue.clear()
 
 		# Fix for different array size
@@ -76,4 +94,3 @@ class MyPlotter():
 		self.var_array =  np.array([[np.std(array_set[:, i]) for i in range(self.array_len)][starting_pointer:] for array_set in self.data_arrays])
 		self.max_array = [[np.max(array_set[:, i]) for i in range(self.array_len)][starting_pointer:] for array_set in self.data_arrays]
 		self.min_array = [[np.min(array_set[:, i]) for i in range(self.array_len)][starting_pointer:] for array_set in self.data_arrays]
-				
