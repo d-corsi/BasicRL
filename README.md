@@ -52,8 +52,8 @@ exploration_decay = 0.999
 tau = 0.005
 
 # Only TD3
-td3_noise_clip = 0.2 # Only TD3
-actor_update_delay = 5 # Only TD3
+td3_noise_clip = 0.2
+actor_update_delay = 5
 ```
 When the paramter **verbose** is set to 2 the algorithm save the reward list inside the folder *data*. The documentation contains a definitions for all the other parameters.
 
