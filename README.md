@@ -1,25 +1,19 @@
 ### Disclaimer:
-This is a **work in progress repo**, there may be bugs in the code and numerous typos in the README file. The documentation for the methods and the class structure is a work in progress. For the class *basic_reinforcement.py* the code will be refactored.
+This is a **work in progress repo**, there may be bugs in the code and numerous typos in the README file. The documentation for the methods and the class structure is a work in progress. The repo is on the third implementation (link to the old version below).
 
 # BasicRL
 A basic implementation of the standard reinforcement learning algorithms in TensorFlow 2, designed for gym-like environments. The code is ready to train and provide an easy interface to change all the hyperparameters for the training.
 
 ## Available Algorithms
 - [x] REINFORCE
-- [x] Actor-Critic
-- [x] Advantage Actor Critic (A2C)
 - [x] Proximal Policy Optimization (PPO)
-- [x] Montecarlo Proximal Policy Optimization (mcPPO)
-- [x] Double Deep Q-Learning (DDQN)
-- [ ] C51
-- [x] Deep Deterministic Policy Gradient (DDPG)
-- [ ] Soft Actor-Critic (SAC) 
-- [x] Twin Delayed DDPG (TD3) 
+- [ ] Double Deep Q-Learning (DDQN)
+- [ ] Deep Deterministic Policy Gradient (DDPG)
 
 ## Run the Algorithms
 To use our algorithms use the class **BasicRL** from the python file *basic_rl/main.py*. The object BasicRL require a key of the algorithm to run and the gym environment as input.
 ```
-# VALID ALGORITHM KEYS: ["REINFORCE", "ActorCritic", "A2C", "PPO", "mcPPO", "DDPG", "DQN", "TD3"]
+# VALID ALGORITHM KEYS: ["REINFORCE", "PPO", "DDPG", "DQN"]
 
 from basic_rl.main import BasicRL
 
@@ -82,6 +76,11 @@ python plotter/plot.py
 * [OpenAI Gym](https://gym.openai.com/)
 * [Numpy](https://numpy.org/)
 * [Matplot Lib](https://matplotlib.org/)
+
+## Old Version
+
+- V1 ([Link](https://github.com/d-corsi/BasicRL/tree/81ad2699f763923b6d1f23d833e6a39ed90bfd8f)): *Version a basic version of the code, easy to read and follow but not scalable*
+- V2 ([Link](https://github.com/d-corsi/BasicRL/tree/cb2255dcfac2d640b561cb294583ff61cc6914ed)): *Version with a refactored code, hard to read for different implementations*
 
 ## Author
 
