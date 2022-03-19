@@ -1,32 +1,21 @@
-from basic_rl.algorithms.REINFORCE import ContinuousREINFORCE, DiscreteREINFORCE
-from basic_rl.algorithms.ActorCritic import ContinuousActorCritic, DiscreteActorCritic
-from basic_rl.algorithms.A2C import ContinuousA2C, DiscreteA2C
-from basic_rl.algorithms.PPO import ContinuousPPO, DiscretePPO
-from basic_rl.algorithms.mcPPO import ContinuousMcPPO, DiscreteMcPPO
-from basic_rl.algorithms.DQN import DDQN
+from basic_rl.algorithms.REINFORCE import Reinforce
+from basic_rl.algorithms.PPO import PPO
+from basic_rl.algorithms.mcPPO import MonteCarloPPO
+from basic_rl.algorithms.DDQN import DDQN
 from basic_rl.algorithms.DDPG import DDPG
-from basic_rl.algorithms.TD3 import TD3
 import gym
 
 class BasicRL:
 
 	discrete_dictionary = {
-		"REINFORCE" : DiscreteREINFORCE, 
-		"ActorCritic" : DiscreteActorCritic, 
-		"A2C" : DiscreteA2C, 
-		"PPO" : DiscretePPO, 
-		"mcPPO" : DiscreteMcPPO, 
-		"DQN" : DDQN
+		"REINFORCE" : Reinforce,
+		"PPO" : PPO, 
+		"mcPPO" : MonteCarloPPO,
+		"DDQN" : DDQN
 	}
 
 	continuous_dictionary = {
-		"REINFORCE" : ContinuousREINFORCE, 
-		"ActorCritic" : ContinuousActorCritic, 
-		"A2C" : ContinuousA2C, 
-		"PPO" : ContinuousPPO, 
-		"mcPPO" : ContinuousMcPPO, 
-		"DDPG" : DDPG, 
-		"TD3" : TD3
+		"DDPG" : DDPG
 	}
 
 	def __init__(self, algo, gym_env, **kwargs):
@@ -47,6 +36,6 @@ class BasicRL:
 			self.algorithm = self.continuous_dictionary[algo]( gym_env, **kwargs )
 
 
-	def train( self ):
-		self.algorithm.learn()
+	def train( self, num_episode=1000 ):
+		self.algorithm.loop( num_episode )
 

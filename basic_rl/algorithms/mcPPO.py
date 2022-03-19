@@ -4,9 +4,9 @@ import numpy as np
 import tensorflow as tf
 
 
-class PPO( ReinforcementLearning ):
+class MonteCarloPPO( ReinforcementLearning ):
 
-	def __init__( self, env, verbose, str_mod="PPO", seed=None, **kwargs ):
+	def __init__( self, env, verbose, str_mod="mcPPO", seed=None, **kwargs ):
 
 		#
 		super().__init__( env, verbose, str_mod, seed )
@@ -29,7 +29,6 @@ class PPO( ReinforcementLearning ):
 		self.trajectory_update = 10
 		self.critic_epoch = 40
 		self.critic_batch_size = 128
-		self.trajectory_mean = False
 
 		# 
 		self.relevant_params = {
@@ -60,6 +59,12 @@ class PPO( ReinforcementLearning ):
 
 	def update_networks( self, memory_buffer ):
 
+		done = np.vstack(memory_buffer[:, 5])
+		counter = 0
+		for i in np.where(done == True)[0]:
+			memory_buffer[:, 3][counter:i+1] = self.discount_reward(memory_buffer[:, 3][counter:i+1])
+			counter = i+1
+
 		# Critic update (repeated epoch times on a batch, fixed):
 		for _ in range( self.critic_epoch ):
 			idx = np.random.randint(memory_buffer.shape[0], size=self.critic_batch_size)
@@ -76,20 +81,25 @@ class PPO( ReinforcementLearning ):
 			self.actor_optimizer.apply_gradients( zip(actor_gradient, self.actor.trainable_variables) )
 
 
-	def temporal_difference(self, reward, new_state, done): 
-		return reward + (1 - done.astype(int)) * self.gamma * self.critic(new_state) 
+	def discount_reward(self, rewards):
+		sum_reward = 0
+		discounted_rewards = []
+
+		for r in rewards[::-1]:
+			sum_reward = r + self.gamma * sum_reward
+			discounted_rewards.append(sum_reward)
+		discounted_rewards.reverse() 	
+
+		return discounted_rewards
 
 	
 	def critic_objective_function(self, memory_buffer):
 		# Extract values from buffer
 		state = np.vstack(memory_buffer[:, 0])
-		reward = np.vstack(memory_buffer[:, 3])
-		new_state = np.vstack(memory_buffer[:, 4])
-		done = np.vstack(memory_buffer[:, 5])
+		discounted_reward = np.vstack(memory_buffer[:, 3])
 
 		predicted_value = self.critic(state)
-		target = self.temporal_difference(reward, new_state, done)
-		mse = tf.math.square(predicted_value - target)
+		mse = tf.math.square(predicted_value - discounted_reward)
 
 		return tf.math.reduce_mean(mse)
 
@@ -105,13 +115,14 @@ class PPO( ReinforcementLearning ):
 		state = np.vstack(memory_buffer[:, 0])
 		action = memory_buffer[:, 1]
 		action_prob = np.vstack(memory_buffer[:, 2])
-		reward = np.vstack(memory_buffer[:, 3])
-		new_state = np.vstack(memory_buffer[:, 4])
+		discounted_reward  = np.vstack(memory_buffer[:, 3])
 		done = np.vstack(memory_buffer[:, 5])
+
+		end_trajectories = np.where(done == True)[0]
 
 		# Computation of the advantege
 		baseline = self.critic(state)
-		advantage = self.temporal_difference(reward, new_state, done) - baseline
+		advantage = discounted_reward - baseline
 
 		prob = self.actor(state)
 		action_idx = [[counter, val] for counter, val in enumerate(action)] #Trick to obatin the coordinates of each desired action
@@ -122,10 +133,13 @@ class PPO( ReinforcementLearning ):
 		obj_1 = r_theta * advantage
 		obj_2 = tf.clip_by_value(r_theta, 1-clip_val, 1+clip_val) * advantage
 		partial_objective = tf.math.minimum(obj_1, obj_2)
+		
+		trajectory_probabilities = []
+		counter = 0
+		for i in end_trajectories:
+			trajectory_probabilities.append( tf.math.reduce_sum( tf.math.log(partial_objective[counter : i+1])) )
+			counter = i+1
 
-		# Mean over the trajectory (OpeanAI implementation)
-		if self.trajectory_mean: -tf.math.reduce_mean(partial_objective)
+		return -tf.math.reduce_mean(partial_objective)
 
-		# Sum over the trajectory (Theoretical implementation)
-		return -tf.math.reduce_sum(partial_objective)
 	

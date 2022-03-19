@@ -1,5 +1,5 @@
 ### Disclaimer:
-This is a **work in progress repo**, there may be bugs in the code and numerous typos in the README file. The documentation for the methods and the class structure is a work in progress. The repo is on the third implementation (link to the old version below).
+This is a **work in progress repo**, there may be bugs in the code and numerous typos in the README file. The documentation for the methods and the class structure is a work in progress. The current is the third implementation of the repo, more algorithm (and implementation) can be found on the oldest versions (links below).
 
 # BasicRL
 A basic implementation of the standard reinforcement learning algorithms in TensorFlow 2, designed for gym-like environments. The code is ready to train and provide an easy interface to change all the hyperparameters for the training.
@@ -7,13 +7,14 @@ A basic implementation of the standard reinforcement learning algorithms in Tens
 ## Available Algorithms
 - [x] REINFORCE
 - [x] Proximal Policy Optimization (PPO)
-- [ ] Double Deep Q-Learning (DDQN)
-- [ ] Deep Deterministic Policy Gradient (DDPG)
+- [x] Proximal Policy Optimization Monte Carlo (mcPPO)
+- [x] Double Deep Q-Learning (DDQN)
+- [x] Deep Deterministic Policy Gradient (DDPG)
 
 ## Run the Algorithms
 To use our algorithms use the class **BasicRL** from the python file *basic_rl/main.py*. The object BasicRL require a key of the algorithm to run and the gym environment as input.
 ```
-# VALID ALGORITHM KEYS: ["REINFORCE", "PPO", "DDPG", "DQN"]
+# VALID ALGORITHM KEYS: ["REINFORCE", "PPO", "mcPPO", "DQN", DDPG"]
 
 from basic_rl.main import BasicRL
 
@@ -31,24 +32,25 @@ Follow a list of the available parameters (with the default value):
 # Common to all the algorithms
 verbose = 1 
 gamma = 0.99  
-update_frequency = 10
-batch_size = 64
-epoch = 10
 memory_size = None (no limit)
 
-# Only Continuous REINFORCE, Actor/Critic, A2C and PPO
-sigma = 1.0
-sigma_decay = 0.99
+# Only DQN (DDQN)
+epoch = 40
+batch_size = 128
 
-# Only DQN, DDPG and TD3
-exploration_rate = 1.0
-exploration_decay = 0.999
+# Only Actor Critic Method (PPO, mcPPO, DDPG)
+critic_epoch = 40
+critic_batch_size = 128
+
+# Only Value Based (DDQN, DDPG)
+eps_decay = 0.9995
 tau = 0.005
 
-# Only TD3
-td3_noise_clip = 0.2
-actor_update_delay = 5
+# Only Policy Based (REINFORCE, PPO, mcPPO)
+trajectory_update = 10
+trajectory_mean = False
 ```
+
 When the paramter **verbose** is set to 2 the algorithm save the reward list inside the folder *data*. The documentation contains a definitions for all the other parameters.
 
 ## Baseline
@@ -60,15 +62,10 @@ To reproduce our results on [Lunar Lander Continuous](https://gym.openai.com/env
 python plotter/plot.py
 ```
 
-### Continuous Baseline:
-<img src="images/continuous_baseline.png" align="middle" width="550"/>
-
-*NB: standard deviation is in logarithmic scale.*
-
 ### Discrete Baseline:
-<img src="images/discrete_baseline.png" align="middle" width="550"/>
+<img src="images/LunarLander-v2.png" align="middle" width="550"/>
 
-*NB: standard deviation is in logarithmic scale.*
+*NB: data are taken with the default parameters and 3 different run with seeds [2, 5 and 6]*
 
 ## Built With
 
@@ -77,10 +74,10 @@ python plotter/plot.py
 * [Numpy](https://numpy.org/)
 * [Matplot Lib](https://matplotlib.org/)
 
-## Old Version
+## Old Versions
 
-- V1 ([Link](https://github.com/d-corsi/BasicRL/tree/81ad2699f763923b6d1f23d833e6a39ed90bfd8f)): *Version a basic version of the code, easy to read and follow but not scalable*
-- V2 ([Link](https://github.com/d-corsi/BasicRL/tree/cb2255dcfac2d640b561cb294583ff61cc6914ed)): *Version with a refactored code, hard to read for different implementations*
+- V1 ([Link](https://github.com/d-corsi/BasicRL/tree/81ad2699f763923b6d1f23d833e6a39ed90bfd8f)): *The first stable version of the code, easy to read and follow but not scalable*
+- V2 ([Link](https://github.com/d-corsi/BasicRL/tree/cb2255dcfac2d640b561cb294583ff61cc6914ed)): *Second version with a refactored code, hard to read for different implementations*
 
 ## Author
 
