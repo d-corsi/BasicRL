@@ -3,6 +3,3 @@ __pycache__/
 
 # Data File:
 data/*.txt
-
-# Old Implementations
-old_implementations/

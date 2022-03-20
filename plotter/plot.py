@@ -2,7 +2,7 @@ from reinforcement_plotter import ReinforcementPlotter
 import glob
 
 
-
+# Collect the data from the CSV file
 data = [
 		glob.glob("data/PPO_*.csv"),
 		glob.glob("data/REINFORCE_*.csv"),

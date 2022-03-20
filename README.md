@@ -63,9 +63,9 @@ python plotter/plot.py
 ```
 
 ### Discrete Baseline:
-<img src="images/LunarLander-v2.png" align="middle" width="550"/>
+<img src="images/LunarLander_v2.png" align="middle" width="550"/>
 
-*NB: data are taken with the default parameters and 3 different run with seeds [2, 5 and 6]*
+*NB: data are taken on 3 different run with seeds [2, 5 and 6]*
 
 ## Built With
 

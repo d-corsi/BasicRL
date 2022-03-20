@@ -4,6 +4,7 @@ import csv
 from collections import deque
 import warnings; warnings.filterwarnings("ignore")
 
+
 class ReinforcementPlotter():
 
 	def __init__( self, x_label="X Label", y_label="Y Label", title="", cap=None ):
