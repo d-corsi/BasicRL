@@ -29,16 +29,7 @@ class DDPG( ReinforcementLearning ):
 
 		#
 		critic_input_shape = (self.input_shape[0]+self.action_space.shape[0], )
-		self.actor = self.generate_model(self.input_shape, self.action_space.shape[0])
-		self.critic = self.generate_model(critic_input_shape, 1, layers=3, nodes=64)
-
-		#
-		self.critic_target = self.generate_model(critic_input_shape, 1, layers=3, nodes=64)
-		self.critic_target.set_weights(self.critic.get_weights())
-
-		#
-		self.actor_optimizer = tf.keras.optimizers.Adam()
-		self.critic_optimizer = tf.keras.optimizers.Adam()
+		action_norm_bound = [env.action_space.low, env.action_space.high]
 		
 		#
 		self.memory_size = 5000
@@ -47,6 +38,10 @@ class DDPG( ReinforcementLearning ):
 		self.critic_batch_size = 128
 		self.eps_decay = 0.9995
 		self.tau = 0.005
+		self.layers = 2
+		self.nodes = 32
+		self.layers_critic = 3
+		self.nodes_critic = 64
 
 		# 
 		self.relevant_params = {
@@ -66,6 +61,20 @@ class DDPG( ReinforcementLearning ):
 		#
 		self.memory_buffer = deque( maxlen=self.memory_size )
 		self.eps_greedy = 1
+
+		#
+		self.actor = self.generate_model(self.input_shape, self.action_space.shape[0], \
+			layers=self.layers, nodes=self.nodes,
+			last_activation='sigmoid', output_bounds=action_norm_bound)
+		
+		#
+		self.critic = self.generate_model(critic_input_shape, 1, layers=self.layers_critic, nodes=self.nodes_critic)
+		self.critic_target = self.generate_model(critic_input_shape, 1, layers=self.layers_critic, nodes=self.nodes_critic)
+		self.critic_target.set_weights(self.critic.get_weights())
+
+		#
+		self.actor_optimizer = tf.keras.optimizers.Adam()
+		self.critic_optimizer = tf.keras.optimizers.Adam()
 
 
 	# Mandatory method to implement for the ReinforcementLearning class, decide the 

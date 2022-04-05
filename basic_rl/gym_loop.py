@@ -2,7 +2,14 @@ import warnings; warnings.filterwarnings("ignore")
 import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 import tensorflow as tf
 import numpy as np
-import abc, csv
+import abc, csv, datetime, gym
+
+
+# Utility function, check existence of a folder
+def ensure_dir(file_path):
+	directory = os.path.dirname(file_path)
+	if not os.path.exists(directory):
+		os.makedirs(directory)
 
 
 class ReinforcementLearning( metaclass=abc.ABCMeta ):
@@ -51,6 +58,9 @@ class ReinforcementLearning( metaclass=abc.ABCMeta ):
 			self.input_shape = self.env.observation_space.shape
 			self.action_space = env.action_space
 
+			# Utility variable for data logging
+			self.logging_dir_path = os.getcwd() + '/log'
+
 
 	# Main loop of the algorithm, the parameter num_episodes indicates the number of reinforcement learning
 	# episode for the training
@@ -63,18 +73,25 @@ class ReinforcementLearning( metaclass=abc.ABCMeta ):
 		# (only when verbose is active on file)
 		if self.verbose > 1:
 
-			# Create a string for the file name with a set of configuration parameters  
-			file_name = f"{self.str_mod}_seed{self.run_id}"
+			# Create the string with the configuration for the file name
+			self.logging_dir_path += f"/{self.str_mod}_seed{self.run_id}"
 
-			# Concatenate the attributes with the key from a specific dictionary relevant_params
-			# to built the name. This dictionary can be defined in the inherit class. In the default
-			# configuration the file name contains only the algorithm name
+			# Extract from the dicitionary of the relevant parameters
+			# the parameters to save on the filen name
 			for key, value in self.relevant_params.items():
-				file_name += f"_{value}{self.__dict__[key]}"
+				self.logging_dir_path += f"_{value}{self.__dict__[key]}"
+
+			# Adding the starting datetime for the file name
+			self.logging_dir_path += '_'
+			self.logging_dir_path += datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+			# Saving the stats in the correct foler
+			file_name = self.logging_dir_path + '/run_stats.csv'
+			ensure_dir(file_name)
 
 			# Create the CSV file and the writer
-			csv_file = open( f"data/{file_name}.csv", mode='w')
-			fieldnames = ['episode', 'reward', 'step']
+			csv_file = open(f"{file_name}", mode='x')
+			fieldnames = ['episode', 'reward', 'success', 'step', 'cost', 'action_list']
 			self.writer = csv.DictWriter(csv_file, fieldnames=fieldnames, lineterminator='\n')
 			self.writer.writeheader()
 
@@ -120,6 +137,7 @@ class ReinforcementLearning( metaclass=abc.ABCMeta ):
 				print( f"({self.str_mod}) Ep: {episode:5}", end=" " )
 				print( f"reward: {logger_dict['reward'][-1]:7.2f} (last_100: {np.mean(reward_last_100):7.2f})", end=" " )
 				if 'eps_greedy' in self.__dict__.keys(): print( f"eps: {self.eps_greedy:3.2f}", end=" " )
+				if 'sigma' in self.__dict__.keys(): print( f"sigma: {self.sigma:3.2f}", end=" " )
 				print( f"step_last_100 {int(np.mean(step_last_100)):5d}")
 
 			# Log all the results, depending on the <verbose> parameter
@@ -131,17 +149,36 @@ class ReinforcementLearning( metaclass=abc.ABCMeta ):
 					'step': logger_dict['step'][-1]	
 				})
 
+			# Log all the results, depending on the <verbose> parameter
+			# here save the models generated
+			if self.verbose > 2 and episode % 100 == 0:
+				saved_model_path = self.logging_dir_path + '/models'
+				ensure_dir(f"{saved_model_path}/test.txt")
+				if 'actor' in self.__dict__.keys():
+					self.actor.save(f"{saved_model_path}/{self.str_mod}_id{self.run_id}_ep{episode}.h5")
+				if 'network' in self.__dict__.keys(): 
+					self.network.save(f"{saved_model_path}/{self.str_mod}_id{self.run_id}_ep{episode}.h5")
 
 
 	# Class that generate a basic neural netowrk from the given parameters.
 	# Can be overrided in the inheriting class for a specific architecture (e.g., dueling)
-	def generate_model( self, input_shape, output_size=1, layers=2, nodes=32, last_activation='linear' ):
+	def generate_model( self, input_shape, output_size=1, layers=2, nodes=32, last_activation='linear', output_bounds=None ):
+
+		# Fix if the output shape is received as a gym spaces,
+		# covnersion to integer
+		if isinstance(output_size, gym.spaces.discrete.Discrete): output_size = output_size.n
+		if isinstance(output_size, gym.spaces.box.Box): output_size = output_size.shape[0]		
 
 		# Itearte over the provided parametrs to create the network, the input shape must be defined as a multidimensional tuple (e.g, (4,))
 		# While the output size as an integer
 		hiddens_layers = [tf.keras.layers.Input( shape=input_shape )]
 		for _ in range(layers):	hiddens_layers.append( tf.keras.layers.Dense( nodes, activation='relu')( hiddens_layers[-1] ) )
 		hiddens_layers.append( tf.keras.layers.Dense( output_size, activation=last_activation)( hiddens_layers[-1] ) )	
+
+		# Normalize the output layer between a range if given,
+		# usually used with continuous control for a sigmoid final activation
+		if output_bounds is not None: 
+			hiddens_layers[-1] = hiddens_layers[-1] * (output_bounds[1] - output_bounds[0]) + output_bounds[0]
 
 		# Create the model with the keras format and return
 		return tf.keras.Model( hiddens_layers[0], hiddens_layers[-1] )

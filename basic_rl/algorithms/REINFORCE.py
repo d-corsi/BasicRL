@@ -28,16 +28,12 @@ class Reinforce( ReinforcementLearning ):
 		np.random.seed( seed )
 
 		#
-		self.actor = self.generate_model(self.input_shape, self.action_space.n, last_activation='softmax')
-
-		#
-		self.actor_optimizer = tf.keras.optimizers.Adam()
-
-		#
 		self.memory_size = None
 		self.gamma = 0.99
 		self.trajectory_update = 10
 		self.trajectory_mean = False
+		self.layers = 2
+		self.nodes = 32
 
 		# 
 		self.relevant_params = {
@@ -50,7 +46,15 @@ class Reinforce( ReinforcementLearning ):
 			if hasattr(self, key) and value is not None: 
 				setattr(self, key, value)
 
+		#
 		self.memory_buffer = deque( maxlen=self.memory_size )
+
+		#
+		self.actor = self.generate_model(self.input_shape, self.action_space, \
+			layers=self.layers, nodes=self.nodes, last_activation='softmax')
+
+		#
+		self.actor_optimizer = tf.keras.optimizers.Adam()
 
 
 	# Mandatory method to implement for the ReinforcementLearning class, decide the 
@@ -133,7 +137,6 @@ class Reinforce( ReinforcementLearning ):
 		# the bias, see the original paper for more details about the baseline
 		objective_function = tf.reduce_mean( trajectory_objectives )
 
-		# NB: returna negative value to automatically use a gradient ascent approach
-		# on TensorFlow
+		# NB: returna negative value to automatically use the gradient ascent on TensorFlow
 		return -objective_function
 	

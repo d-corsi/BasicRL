@@ -1,6 +1,13 @@
 ### Disclaimer:
 This is a **work in progress repo**, there may be bugs in the code and numerous typos in the README file. The documentation for the methods and the class structure is a work in progress. The current is the third implementation of the repo, more algorithm (and implementation) can be found on the oldest versions (links below).
 
+### TODO:
+- Translate DDPG documentation.
+- Fix PPO Monte Carlo 
+- Implement TD3
+- Implement SAC
+- Benchmarki all the algorithms for baselines
+
 # BasicRL
 A basic implementation of the standard reinforcement learning algorithms in TensorFlow 2, designed for gym-like environments. The code is ready to train and provide an easy interface to change all the hyperparameters for the training.
 
@@ -10,6 +17,8 @@ A basic implementation of the standard reinforcement learning algorithms in Tens
 - [x] Proximal Policy Optimization Monte Carlo (mcPPO)
 - [x] Double Deep Q-Learning (DDQN)
 - [x] Deep Deterministic Policy Gradient (DDPG)
+- [ ] Twin Delayed DDPG (TD3)
+- [ ] Soft Actor-Critic (SAC)
 
 ## Run the Algorithms
 To use our algorithms use the class **BasicRL** from the python file *basic_rl/main.py*. The object BasicRL require a key of the algorithm to run and the gym environment as input.
@@ -33,6 +42,8 @@ Follow a list of the available parameters (with the default value):
 verbose = 1 
 gamma = 0.99  
 memory_size = None (no limit)
+layers = 2
+nodes = 32
 
 # Only DQN (DDQN)
 epoch = 40
@@ -41,6 +52,8 @@ batch_size = 128
 # Only Actor Critic Method (PPO, mcPPO, DDPG)
 critic_epoch = 40
 critic_batch_size = 128
+layers_critic = 2
+nodes_critic = 32
 
 # Only Value Based (DDQN, DDPG)
 eps_decay = 0.9995
@@ -49,11 +62,14 @@ tau = 0.005
 # Only Policy Based (REINFORCE, PPO, mcPPO)
 trajectory_update = 10
 trajectory_mean = False
+
+# Only Policy Based with Continuous control (PPO, mcPPO)
+sigma_decay = 0.99999
 ```
 
 When the paramter **verbose** is set to 2 the algorithm save the reward list inside the folder *data*. The documentation contains a definitions for all the other parameters.
 
-## Baseline
+## Example
 The python script *example.py* contains an example to run cartpole v1 with PPO and save the results inside the folder data.
 
 ## Baseline

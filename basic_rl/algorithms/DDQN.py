@@ -30,14 +30,6 @@ class DDQN( ReinforcementLearning ):
 		#
 		tf.random.set_seed( seed )
 		np.random.seed( seed )
-
-		#
-		self.network = self.generate_model(self.input_shape, self.action_space.n)
-		self.network_target = self.generate_model(self.input_shape, self.action_space.n)
-		self.network_target.set_weights(self.network.get_weights())
-
-		#
-		self.optimizer = tf.keras.optimizers.Adam()
 		
 		#
 		self.memory_size = 5000
@@ -46,6 +38,8 @@ class DDQN( ReinforcementLearning ):
 		self.batch_size = 128
 		self.eps_decay = 0.9995
 		self.tau = 0.005
+		self.layers = 2
+		self.nodes = 32
 
 		# 
 		self.relevant_params = {
@@ -65,6 +59,16 @@ class DDQN( ReinforcementLearning ):
 		#
 		self.memory_buffer = deque( maxlen=self.memory_size )
 		self.eps_greedy = 1
+
+		#
+		self.network = self.generate_model(self.input_shape, self.action_space.n, \
+			layers=self.layers, nodes=self.nodes)
+		self.network_target = self.generate_model(self.input_shape, self.action_space.n, \
+			layers=self.layers, nodes=self.nodes)
+		self.network_target.set_weights(self.network.get_weights())
+
+		#
+		self.optimizer = tf.keras.optimizers.Adam()
 
 
 	# Mandatory method to implement for the ReinforcementLearning class, decide the 
@@ -119,7 +123,7 @@ class DDQN( ReinforcementLearning ):
 	def get_action(self, state):
 
 		if np.random.random() < self.eps_greedy:
-			action = np.random.choice(self.action_space)
+			action = np.random.choice(self.action_space.n)
 		else:
 			action = np.argmax(self.network(state.reshape((1, -1))))
 
@@ -139,12 +143,12 @@ class DDQN( ReinforcementLearning ):
 
 		# 
 		next_state_action = np.argmax(self.network(new_state), axis=1)
-		target_mask = self.network_target(new_state) * tf.one_hot(next_state_action, self.action_space)
+		target_mask = self.network_target(new_state) * tf.one_hot(next_state_action, self.action_space.n)
 		target_mask = tf.reduce_sum(target_mask, axis=1, keepdims=True)
 		
 		#
 		target_value = reward + (1 - done.astype(int)) * self.gamma * target_mask
-		mask = self.network(state) * tf.one_hot(action, self.action_space)
+		mask = self.network(state) * tf.one_hot(action, self.action_space.n)
 		prediction_value = tf.reduce_sum(mask, axis=1, keepdims=True)
 
 		#

@@ -1,6 +1,6 @@
 from basic_rl.algorithms.REINFORCE import Reinforce
-from basic_rl.algorithms.PPO import PPO
-from basic_rl.algorithms.mcPPO import MonteCarloPPO
+from basic_rl.algorithms.PPO import PPO, ContPPO
+from basic_rl.algorithms.mcPPO import MonteCarloPPO, ContMonteCarloPPO
 from basic_rl.algorithms.DDQN import DDQN
 from basic_rl.algorithms.DDPG import DDPG
 import gym
@@ -46,7 +46,9 @@ class BasicRL:
 	# Dictionary for the algorithms that support continuous environments
 	# Translates the string into the class object
 	continuous_dictionary = {
-		"DDPG" : DDPG
+		"DDPG" : DDPG,
+		"PPO" : ContPPO,
+		"mcPPO" : ContMonteCarloPPO
 	}
 
 
