@@ -129,7 +129,7 @@ class PPO( ReinforcementLearning ):
 		# critic to predict the real value obtained from the temporal difference call
 		# with a standard MSE loss function
 		predicted_value = self.critic(state)
-		target = self.temporal_difference(reward, new_state, done)
+		target = self.temporal_difference(reward, new_state, done).numpy()
 		mse = tf.math.square(predicted_value - target)
 
 		#
