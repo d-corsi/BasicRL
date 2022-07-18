@@ -7,10 +7,10 @@ import gym
 def main( seed=None ):
 
 	# Create the environment, the BasicRL object and run the training
-	env = gym.make( "LunarLanderContinuous-v2" ); env.seed( seed )
+	#env = gym.make( "LunarLanderContinuous-v2" ); env.seed( seed )
 	#env = gym.make( "LunarLander-v2" ); env.seed( seed )
 	env = gym.make( "LunarLander-v2" ); env.seed( seed )
-	basic_rl = BasicRL( "PPO", env, verbose=1, seed=seed )
+	basic_rl = BasicRL( "PPO", env, verbose=2, seed=seed )
 	basic_rl.train( num_episode=20000 )
 
 

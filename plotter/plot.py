@@ -4,11 +4,11 @@ import glob
 
 # Collect the data from the CSV file
 data = [
-		glob.glob("data/PPO_*.csv"),
-		glob.glob("data/REINFORCE_*.csv"),
-		glob.glob("data/mcPPO_*.csv"),
-		glob.glob("data/DQN_*.csv"),
-		glob.glob("data/DDPG_*.csv")
+		glob.glob("log/PPO_*/run_stats.csv"),
+		#glob.glob("log/REINFORCE_*/run_stats.csv"),
+		#glob.glob("log/mcPPO_*/run_stats.csv"),
+		#glob.glob("log/DQN_*/run_stats.csv"),
+		#glob.glob("log/DDPG_*/run_stats.csv")
 ]
 
 # Plot The Results
